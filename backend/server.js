@@ -14,8 +14,8 @@ import fs from "fs";
 config(); // Load environment variables
 
 // Create __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = join(__filename, "../..");
+const __filename = fileURLToPath(import.meta.url); // Correctly resolve __filename
+const __dirname = join(__filename, "../.."); // Correctly resolve __dirname. this is endicates file is in backend directory
 
 // Express app setup
 const app = express();
