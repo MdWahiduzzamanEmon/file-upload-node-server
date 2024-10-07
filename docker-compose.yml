@@ -1,12 +1,25 @@
-# version: "3.8"
+# # version: "3.8"
+
+# services:
+#   app:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - "6060:2000"
+#     volumes:
+#       - ./backend:/app/backend
+#       - ./frontend:/app/frontend
 
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    image: apk-upload:latest
     ports:
-      - "6060:2000"
+      - "6060:2000" # Map host port 6060 to container port 2000
     volumes:
-      - ./backend:/app/backend
-      - ./frontend:/app/frontend
+      - ./backend:/app/backend # Mount backend code to container
+      - ./frontend:/app/frontend # Mount frontend code to container
+      - ./backend/upload.db:/app/backend/upload.db # Persist the SQLite DB file
