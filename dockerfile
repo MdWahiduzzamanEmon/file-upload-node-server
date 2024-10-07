@@ -8,7 +8,7 @@ WORKDIR /app
 COPY backend/package*.json ./backend/
 
 # Install backend dependencies
-RUN npm install --prefix ./backend
+RUN cd ./backend && npm install --only=production
 
 # Copy the backend code
 COPY backend ./backend
@@ -16,9 +16,8 @@ COPY backend ./backend
 # Copy frontend files into the appropriate directory
 COPY frontend ./frontend
 
-# Expose the port your app runs on
+# Expose the port your app runs on (internally)
 EXPOSE 2000
 
 # Start the application
-CMD ["node", "./backend/server.js"]  
-# Change to your entry point
+CMD ["node", "./backend/server.js"]
