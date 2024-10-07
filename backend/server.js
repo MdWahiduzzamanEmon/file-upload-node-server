@@ -1,15 +1,16 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const cors = require("cors");
-const fs = require("fs");
-const dotenv = require("dotenv");
-const sanitize = require("sanitize-filename");
-const rateLimit = require("express-rate-limit");
-const morgan = require("morgan");
+import express from "express";
+const { static: serveStatic } = express;
+import multer, { diskStorage, MulterError } from "multer";
+import { join, extname as _extname } from "path";
+import cors from "cors";
+import { existsSync, mkdirSync, readdir, unlink } from "fs";
+import { config } from "dotenv";
+import sanitize from "sanitize-filename";
+import rateLimit from "express-rate-limit";
+import morgan from "morgan";
 const sqlite3 = require("sqlite3").verbose();
 
-dotenv.config();
+config();
 
 const app = express();
 const PORT = process.env.PORT || 2000;
@@ -26,15 +27,14 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
+app.use(serveStatic(join(__dirname, "../frontend")));
 
-app.use(express.static(path.join(__dirname, "../frontend")));
-// Serve uploaded files
-app.use("/media", express.static(path.join(__dirname, "uploads/apk")));
+app.use("/media", serveStatic(join(__dirname, "uploads/apk")));
 
 // Ensure uploads/apk directory exists
-const uploadDir = path.join(__dirname, "uploads/apk");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+const uploadDir = join(__dirname, "uploads/apk");
+if (!existsSync(uploadDir)) {
+  mkdirSync(uploadDir, { recursive: true });
 }
 
 // Create or open the database
@@ -63,7 +63,7 @@ const db = new sqlite3.Database("./backend/uploads.db", (err) => {
 
 
 // Configure Multer Storage and File Filter
-const storage = multer.diskStorage({
+const storage = diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadDir); // Use the constant uploadDir
   },
@@ -77,7 +77,7 @@ const storage = multer.diskStorage({
 const fileFilter = function (req, file, cb) {
   const filetypes = /apk/;
   const mimetype = filetypes.test(file.originalname);
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const extname = filetypes.test(_extname(file.originalname).toLowerCase());
 
   if (mimetype && extname) {
     return cb(null, true);
@@ -98,7 +98,7 @@ app.post("/uploadFile", (req, res) => {
 
   // Proceed with file upload
   upload.single("file")(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
+    if (err instanceof MulterError) {
       return res.status(400).json({ error: err.message });
     } else if (err) {
       return res.status(400).json({ error: err.message });
@@ -150,14 +150,14 @@ app.post("/uploadFile", (req, res) => {
 
 // Function to clean the uploads directory
 const cleanUploadsDirectory = (dir) => {
-  fs.readdir(dir, (err, files) => {
+  readdir(dir, (err, files) => {
     if (err) {
       console.error("Could not read directory:", err);
       return;
     }
     for (const file of files) {
-      const filePath = path.join(dir, file);
-      fs.unlink(filePath, (err) => {
+      const filePath = join(dir, file);
+      unlink(filePath, (err) => {
         if (err) {
           console.error("Could not delete file:", err);
         }
@@ -190,7 +190,7 @@ app.get("/uploadedFiles", (req, res) => {
 
 // Add a route to serve the index.html file
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(join(__dirname, "../frontend/index.html"));
 });
 
 // Global Error Handler
