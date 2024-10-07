@@ -44,10 +44,14 @@ app.use(limiter);
 app.use(express.static(join(__dirname, "frontend"))); // Correctly serve frontend assets
 
 // Ensure uploads/apk directory exists
-const uploadDir = join(__dirname, "backend/uploads/apk"); // Adjusted path to backend/uploads/apk
+const uploadDir = join(__dirname, "backend/uploads/apk");
+
 if (!existsSync(uploadDir)) {
   mkdirSync(uploadDir, { recursive: true });
 }
+
+// Serve uploaded files from the uploads directory
+app.use("/media", express.static(uploadDir));
 
 // Initialize SQLite database
 const db = new sqlite3.Database(
@@ -104,6 +108,7 @@ const fileFilter = function (req, file, cb) {
 const upload = multer({
   storage: storage,
   limits: { fileSize: 150 * 1024 * 1024 }, // Limit file size to 150MB
+  fileFilter: fileFilter,
 });
 
 // Upload Endpoint
@@ -124,9 +129,14 @@ app.post("/uploadFile", (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const fileUrl = `${req.protocol}://${req.get("host")}/media/${
-      req.file.filename
-    }`;
+    console.log("Uploaded file path:", join(uploadDir, req.file.filename));
+
+    const fileUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/media/${encodeURIComponent(req.file.filename)}`;
+
+    console.log("File URL:", fileUrl);
+
     const fileData = {
       fileName: req.file.originalname,
       fileUrl: fileUrl,
