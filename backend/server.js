@@ -1,5 +1,4 @@
 import express from "express";
-const { static: serveStatic } = express;
 import multer, { diskStorage, MulterError } from "multer";
 import { join, extname as _extname } from "path";
 import cors from "cors";
@@ -8,43 +7,58 @@ import { config } from "dotenv";
 import sanitize from "sanitize-filename";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
-const sqlite3 = require("sqlite3").verbose();
+import { fileURLToPath } from "url";
+import sqlite3 from "sqlite3"; // Importing SQLite
+import fs from "fs";
 
-config();
+config(); // Load environment variables
 
+// Create __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = join(__filename, "../..");
+
+// Express app setup
 const app = express();
 const PORT = process.env.PORT || 2000;
 
 // Enable CORS
 app.use(cors());
 
-// Logging
-app.use(morgan("combined"));
+// Logging middleware
+app.use(
+  morgan("common", {
+    stream: fs.createWriteStream(join(__dirname, "access.log"), {
+      flags: "a",
+    }),
+  })
+);
 
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 100, // Limit each IP to 100 requests per window
 });
 app.use(limiter);
-app.use(serveStatic(join(__dirname, "../frontend")));
 
-app.use("/media", serveStatic(join(__dirname, "uploads/apk")));
+// Serve static files from the frontend directory
+app.use(express.static(join(__dirname, "frontend"))); // Correctly serve frontend assets
 
 // Ensure uploads/apk directory exists
-const uploadDir = join(__dirname, "uploads/apk");
+const uploadDir = join(__dirname, "backend/uploads/apk"); // Adjusted path to backend/uploads/apk
 if (!existsSync(uploadDir)) {
   mkdirSync(uploadDir, { recursive: true });
 }
 
-// Create or open the database
-const db = new sqlite3.Database("./backend/uploads.db", (err) => {
-  if (err) {
-    console.error("Could not open database:", err);
-  } else {
-    // Create a table if it doesn't exist
-    db.run(
-      `CREATE TABLE IF NOT EXISTS uploaded_files (
+// Initialize SQLite database
+const db = new sqlite3.Database(
+  join(__dirname, "backend/uploads.db"),
+  (err) => {
+    if (err) {
+      console.error("Could not open database:", err);
+    } else {
+      // Create a table if it doesn't exist
+      db.run(
+        `CREATE TABLE IF NOT EXISTS uploaded_files (
         id INTEGER PRIMARY KEY,
         fileName TEXT NOT NULL,
         fileUrl TEXT NOT NULL,
@@ -52,17 +66,17 @@ const db = new sqlite3.Database("./backend/uploads.db", (err) => {
         fileSize REAL NOT NULL,
         apkVersion TEXT
       )`,
-      (err) => {
-        if (err) {
-          console.error("Could not create table:", err);
+        (err) => {
+          if (err) {
+            console.error("Could not create table:", err);
+          }
         }
-      }
-    );
+      );
+    }
   }
-});
+);
 
-
-// Configure Multer Storage and File Filter
+// Multer setup for file uploads
 const storage = diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadDir); // Use the constant uploadDir
@@ -74,6 +88,7 @@ const storage = diskStorage({
   },
 });
 
+// File filter for allowing only APK files
 const fileFilter = function (req, file, cb) {
   const filetypes = /apk/;
   const mimetype = filetypes.test(file.originalname);
@@ -85,14 +100,15 @@ const fileFilter = function (req, file, cb) {
   cb(new Error("Only APK files are allowed"));
 };
 
+// Multer instance
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 150 * 1024 * 1024 }, // 150MB
+  limits: { fileSize: 150 * 1024 * 1024 }, // Limit file size to 150MB
 });
 
-// Upload Endpoint with Directory and Database Clean-up
+// Upload Endpoint
 app.post("/uploadFile", (req, res) => {
-  // Clean the uploads directory and reset the database
+  // Clean the uploads directory and reset the database before new upload
   cleanUploadsDirectory(uploadDir);
   resetDatabase();
 
@@ -122,7 +138,7 @@ app.post("/uploadFile", (req, res) => {
         ?.slice(0, -1),
     };
 
-    // Insert the new file data into the database
+    // Insert file data into the database
     db.run(
       `INSERT OR REPLACE INTO uploaded_files (id, fileName, fileUrl, mimeType, fileSize, apkVersion) VALUES (1, ?, ?, ?, ?, ?)`,
       [
@@ -175,7 +191,7 @@ const resetDatabase = () => {
   });
 };
 
-// New API Endpoint to retrieve the latest uploaded file info
+// Endpoint to retrieve the latest uploaded file info
 app.get("/uploadedFiles", (req, res) => {
   db.get(`SELECT * FROM uploaded_files WHERE id = 1`, [], (err, row) => {
     if (err) {
@@ -188,9 +204,9 @@ app.get("/uploadedFiles", (req, res) => {
   });
 });
 
-// Add a route to serve the index.html file
+// Serve index.html from frontend directory
 app.get("/", (req, res) => {
-  res.sendFile(join(__dirname, "../frontend/index.html"));
+  res.sendFile(join(__dirname, "frontend/index.html"));
 });
 
 // Global Error Handler
