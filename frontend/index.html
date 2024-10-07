@@ -1,0 +1,133 @@
+<!-- frontend/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>APK Upload</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f5f7fa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        text-align: center;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+        color: #333333;
+      }
+
+      .file-input {
+        margin-bottom: 15px;
+      }
+
+      .file-input input[type="file"] {
+        display: none;
+      }
+
+      .file-input label {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-block;
+        margin-bottom: 10px;
+      }
+
+      .file-details {
+        margin-bottom: 15px;
+        color: #555555;
+      }
+
+      #uploadBtn {
+        background-color: #2196f3;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      #uploadBtn:disabled {
+        background-color: #90caf9;
+        cursor: not-allowed;
+      }
+
+      #progressContainer {
+        display: none;
+        margin-top: 20px;
+      }
+
+      #progressBar {
+        width: 100%;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      #progressBar div {
+        height: 20px;
+        width: 0;
+        background-color: #76c7c0;
+        text-align: center;
+        line-height: 20px;
+        color: white;
+        transition: width 0.4s ease;
+      }
+
+      #downloadLink {
+        margin-top: 20px;
+      }
+
+      .download-link {
+        background-color: #ff9800;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+      }
+
+      .download-link:hover {
+        background-color: #fb8c00;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Upload APK</h1>
+      <div class="file-input">
+        <label for="fileInput">Choose APK File</label>
+        <input type="file" id="fileInput" accept=".apk" />
+      </div>
+      <div class="file-details" id="fileDetails">No file selected</div>
+      <button id="uploadBtn">Upload</button>
+
+      <div id="progressContainer">
+        <div id="progressBar"><div></div></div>
+        <p id="progressText">0%</p>
+      </div>
+
+      <div id="downloadLink"></div>
+    </div>
+
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
