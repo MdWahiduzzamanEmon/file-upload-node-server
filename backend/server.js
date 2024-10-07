@@ -129,13 +129,13 @@ app.post("/uploadFile", (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    console.log("Uploaded file path:", join(uploadDir, req.file.filename));
+    // console.log("Uploaded file path:", join(uploadDir, req.file.filename));
 
     const fileUrl = `${req.protocol}://${req.get(
       "host"
     )}/media/${encodeURIComponent(req.file.filename)}`;
 
-    console.log("File URL:", fileUrl);
+    // console.log("File URL:", fileUrl);
 
     const fileData = {
       fileName: req.file.originalname,
