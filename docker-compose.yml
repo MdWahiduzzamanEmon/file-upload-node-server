@@ -24,6 +24,8 @@ services:
       - ./frontend:/app/frontend # Mount frontend code to container
       - ./backend/uploads:/app/backend/uploads # Persist uploads
       - ./backend/uploads.db:/app/backend/uploads.db # Persist the SQLite DB file
+
+    restart: always # Restart the container if it crashes
     environment:
       NODE_ENV: production # You can adjust environment variables here
       DB_FILE_PATH: /app/backend/uploads.db # Path to your DB file if needed in your code
