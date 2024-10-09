@@ -10,6 +10,7 @@ import morgan from "morgan";
 import { fileURLToPath } from "url";
 import sqlite3 from "sqlite3"; // Importing SQLite
 import fs from "fs";
+import helmet from "helmet";
 
 config(); // Load environment variables
 
@@ -38,7 +39,9 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per window
 });
+
 app.use(limiter);
+app.use(helmet());
 
 // Serve static files from the frontend directory
 app.use(express.static(join(__dirname, "frontend"))); // Correctly serve frontend assets
