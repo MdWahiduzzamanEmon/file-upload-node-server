@@ -10,7 +10,7 @@ import morgan from "morgan";
 import { fileURLToPath } from "url";
 import sqlite3 from "sqlite3"; // Importing SQLite
 import fs from "fs";
-// import helmet from "helmet";
+import helmet from "helmet";
 
 config(); // Load environment variables
 
@@ -41,6 +41,14 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+  })
+);
 
 // Serve static files from the frontend directory
 app.use(express.static(join(__dirname, "frontend"))); // Correctly serve frontend assets
