@@ -41,7 +41,15 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "script-src": ["'self'", "'unsafe-eval'"],
+      },
+    },
+  })
+);
 
 // Serve static files from the frontend directory
 app.use(express.static(join(__dirname, "frontend"))); // Correctly serve frontend assets
