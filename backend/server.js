@@ -43,11 +43,7 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(
   helmet({
-    contentSecurityPolicy: {
-      directives: {
-        "script-src": ["'self'", "'unsafe-eval'"],
-      },
-    },
+    contentSecurityPolicy: false,
   })
 );
 
