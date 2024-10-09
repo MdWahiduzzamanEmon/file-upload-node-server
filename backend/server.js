@@ -42,8 +42,16 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(
-  helmet({
-    contentSecurityPolicy: false,
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      imgSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      frameSrc: ["'self'"],
+    },
+    reportOnly: true, // Set to 'true' to enable report-only mode
   })
 );
 
