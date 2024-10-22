@@ -141,11 +141,11 @@ app.post("/uploadFile", (req, res) => {
 
     // console.log("Uploaded file path:", join(uploadDir, req.file.filename));
 
-    const fileUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/media/${encodeURIComponent(req.file.filename)}`;
+    const fileUrl = `${req?.get("origin")}/media/${encodeURIComponent(
+      req.file.filename
+    )}`;
 
-    // console.log("File URL:", fileUrl);
+    // console.log("File URL:", req?.get("origin"));
 
     const fileData = {
       fileName: req.file.originalname,
